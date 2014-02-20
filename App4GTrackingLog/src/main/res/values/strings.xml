@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">LTETrackingLog</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="CONNECTIVITY_INFO">CONNECTIVITY_INFO</string>
+    <string name="CONNECTIVITY_CHANGED">CONNECTIVITY_CHANGED</string>
+    <string name="buttonShowMap">Show Map</string>
+    <string name="filterALL">ALL</string>
+    <string name="filterHSPAP">HS</string>
+    <string name="filterUMTS">UMTS</string>
+    <string name="filterLTE">LTE</string>
+
+    <string-array name="networks_stat_filters">
+        <item>ALL</item>
+        <item>HSPAP</item>
+        <item>UMTS</item>
+        <item>LTE</item>
+    </string-array>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
