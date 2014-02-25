@@ -9,7 +9,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CellInfo;
@@ -33,6 +35,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -148,9 +156,49 @@ public class MainActivity extends FragmentActivity
          * mShareActionProvider.setShareIntent()
          */
         private Intent getDefaultIntent() {
+            InputStream is = getResources().openRawResource(R.drawable.trash_48x48);
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) +  "/imageLTETrack.pgn");
+            CreateFileFromInputStream(is,file);
+            Uri uri = Uri.fromFile(file);
             Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("image/*");
+            intent.setData(uri);
+            intent.setType("image/pgn");
             return intent;
+        }
+
+        private void CreateFileFromInputStream(InputStream input, File file)
+        {
+            try {
+                OutputStream output = null;
+                try {
+                    output = new FileOutputStream(file);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    try {
+                        final byte[] buffer = new byte[1024];
+                        int read;
+
+                        while ((read = input.read(buffer)) != -1)
+                            output.write(buffer, 0, read);
+
+                        output.flush();
+                    } finally {
+                        output.close();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            finally {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
         }
 
         @Override
