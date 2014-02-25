@@ -19,6 +19,7 @@ public class NetworkInfoItem {
     public final static SimpleDateFormat FORMAT = new SimpleDateFormat(
             //"yyyy-MM-dd HH:mm:ss", Locale.ITALY);
             "dd-MM-yyyy HH:mm:ss", Locale.ITALY);
+    private String mrawText;
 
     public  NetworkInfoItem(String summaryInfo)
     {
@@ -121,4 +122,11 @@ public class NetworkInfoItem {
         return mTimeEventInfo;
     }
 
+    public void setRawText(String mrawText) {
+        this.mrawText = mrawText;
+    }
+
+    public String getRawText() {
+        return mrawText;
+    }
 }

@@ -44,6 +44,12 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         return mItems.size();
     }
 
+    public void update(String queryText)
+    {
+        mItems = this.getFilteredResults(queryText,true);
+        notifyDataSetChanged();
+    }
+
     // Clears the list adapter of all items.
     public void clear(){
 
@@ -96,15 +102,10 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
             txtSumInfo.setTextColor(Color.RED);
         Button btnShowMap = (Button)itemLayout.findViewById(R.id.btnShowNetworkInfoMap);
         String latitude = "",longitude = "";
-        if(networkInfoItem.getLocation() != null)
-        {
-           latitude = String.valueOf(networkInfoItem.getLocation().getLatitude());
-           longitude = String.valueOf(networkInfoItem.getLocation().getLongitude());
-        }
-        else
-        {
+
+        if(networkInfoItem.getLocation() == null)
             btnShowMap.setEnabled(false);
-        }
+
         btnShowMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -119,17 +120,18 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
                     String encodedQuery = Uri.encode(query);
                     String uriString = uriBegin + "?q=" + encodedQuery + "&z=13";
                     Uri uri = Uri.parse(uriString);
-                //showMap(Uri.parse("geo:" + networkInfoItem.getLocation().getLatitude() + ","
-                 //       + networkInfoItem.getLocation().getLongitude()));
                     showMap(uri);
                 }
             }
         });
 
+
+        String itemText = "[" + networkInfoItem.getmTimeEventInfo() + "] " +
+                "[" + networkInfoItem.getOperatorName() + "] " +
+                "[" + networkInfoItem.getNetworkTypeName() + "] ";
+        networkInfoItem.setRawText(itemText);
         txtSumInfo.setText(/*networkInfoItem.getSummaryInfo() + */
-                "[" + networkInfoItem.getmTimeEventInfo() + "] " +
-                        "[" + networkInfoItem.getOperatorName() + "] " +
-                        "[" + networkInfoItem.getNetworkTypeName() + "] "
+                itemText
                 //"[LOC: " + latitude + "," + longitude + "]"
         );
 
@@ -159,7 +161,8 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
     }
 
     @Override
-    public Filter getFilter() {
+    public Filter getFilter()
+    {
         return new Filter() {
             @SuppressWarnings("unchecked")
             @Override
@@ -173,7 +176,7 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 //Log.d(Constants.TAG, "**** PERFORM FILTERING for: " + constraint);
-                List<NetworkInfoItem> filteredResults = getFilteredResults(constraint);
+                List<NetworkInfoItem> filteredResults = getFilteredResults(constraint,false);
 
                 FilterResults results = new FilterResults();
                 results.values = filteredResults;
@@ -183,13 +186,21 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         };
     }
 
-    private List<NetworkInfoItem> getFilteredResults(CharSequence constraint) {
+    private List<NetworkInfoItem> getFilteredResults(CharSequence constraint, boolean IsRawSearch) {
         List<NetworkInfoItem> values = new ArrayList<NetworkInfoItem>();
         for(NetworkInfoItem item:mOriginalItems)
         {
-            if((mContext.getString(R.string.filterALL).equals(constraint))
-                || item.getNetworkTypeName().contains(constraint))
-                values.add(item);
+            if(!IsRawSearch)
+            {
+                if((mContext.getString(R.string.filterALL).equals(constraint))
+                    || item.getNetworkTypeName().contains(constraint))
+                    values.add(item);
+            }
+            else
+            {
+                if(item.getRawText().contains(constraint))
+                    values.add(item);
+            }
         }
         Collections.sort(values, new Comparator<NetworkInfoItem>() {
             @Override

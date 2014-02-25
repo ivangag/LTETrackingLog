@@ -1,7 +1,6 @@
 package com.gagi.app.ltetrack;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.Application;
 import android.app.ListFragment;
 import android.content.BroadcastReceiver;
@@ -26,6 +25,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.SearchView;
+import android.widget.ShareActionProvider;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -85,31 +86,6 @@ public class MainActivity extends FragmentActivity
                 */
     }
 
-
-    @Override
-    protected void onResume()
-    {
-        //TextView txtmsg = (TextView) getFragmentManager().findFragmentById(R.id.container).getView().findViewById(R.id.txtNetworkInfo);
-        //txtmsg.setText(mTxtNetStatus.toString());
-        super.onResume();
-    }
-
-
-    @Override
-    public void onSaveInstanceState(Bundle savedInstanceState) {
-        /*
-        // Save the user's current game state
-        StringBuilder sb = new StringBuilder(((TextView) getFragmentManager().findFragmentById(R.id.container).getView().findViewById(R.id.txtNetworkInfo)).getText());
-        savedInstanceState.putString(TXT_NET_STATUS,sb.toString() );
-        */
-        // Always call the superclass so it can save the view hierarchy state
-        super.onSaveInstanceState(savedInstanceState);
-    }
-
-
-
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         
@@ -164,22 +140,83 @@ public class MainActivity extends FragmentActivity
         ArrayList<String> mArrayItemsNetworkInfoWithFilter;
         ArrayAdapter mArrayAdapterNetworkInfo;
 
+        private ShareActionProvider mShareActionProvider;
+
+        /** Defines a default (dummy) share intent to initialize the action provider.
+         * However, as soon as the actual content to be used in the intent
+         * is known or changes, you must update the share intent by again calling
+         * mShareActionProvider.setShareIntent()
+         */
+        private Intent getDefaultIntent() {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("image/*");
+            return intent;
+        }
+
         @Override
         public void onCreateOptionsMenu (Menu menu, MenuInflater inflater)
         {
+            /*
             menu.add(Menu.NONE, MENU_DELETE,Menu.NONE,"Delete All")
                     .setIcon(R.drawable.trash_48x48)
                     .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
             menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log").setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+            */
+            inflater.inflate(R.menu.fragment_main,menu);
+
+            MenuItem searchItem = menu.findItem(R.id.action_search);
+            SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+
+            searchView.setOnSearchClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Toast.makeText(getActivity().getApplicationContext(), "Search", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            MenuItem shareItem = menu.findItem(R.id.action_share);
+            mShareActionProvider = (ShareActionProvider)shareItem.getActionProvider();
+
+            mShareActionProvider.setShareIntent(getDefaultIntent());
+
+           searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+               @Override
+               public boolean onQueryTextSubmit(String query) {
+                   //Toast.makeText(getActivity().getApplicationContext(), "onQueryTextSubmit:" + query, Toast.LENGTH_SHORT).show();
+                   mNetAdapter.update(query.toUpperCase());
+                   return true;
+               }
+
+               @Override
+               public boolean onQueryTextChange(String newText) {
+                   //Toast.makeText(getActivity().getApplicationContext(), "onQueryTextChange:" + newText,Toast.LENGTH_SHORT).show();
+                   mNetAdapter.update(newText.toUpperCase());
+                   return true;
+               }
+           });
+
+            searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+                @Override
+                public boolean onMenuItemActionExpand(MenuItem item) {
+                    return true;
+                }
+
+                @Override
+                public boolean onMenuItemActionCollapse(MenuItem item) {
+                    mNetAdapter.getFilter().filter(getResources().getString(R.string.filterALL));
+                    return true;
+                }
+            });
             super.onCreateOptionsMenu(menu,inflater);
+
         }
         @Override
         public boolean onOptionsItemSelected(MenuItem item) {
             switch (item.getItemId()) {
-                case MENU_DELETE:
+                case R.id.action_delete:
                     mNetAdapter.clear();
                     return true;
-                case MENU_DUMP:
+                case R.id.action_search:
                     //dump();
                     return true;
                 default:
@@ -267,16 +304,6 @@ public class MainActivity extends FragmentActivity
             // Another interface callback
         }
 
-        public PlaceholderFragment()
-        {
-
-        }
-
-        @Override
-        public void onAttach(Activity activity)
-        {
-            super.onAttach(activity);
-        }
 
         // this method is only called once for this fragment
         @Override
@@ -301,26 +328,10 @@ public class MainActivity extends FragmentActivity
             super.onDestroy();
         }
 
-        @Override
-        public void onStart() {
-            super.onStart();
-            // Connect the client.
-            //mLocationClient.connect();
-        }
-
-        @Override
-        public void onStop() {
-                // Disconnecting the client invalidates it.
-//            mLocationClient.disconnect();
-            super.onStop();
-        }
-
         @Override public void onActivityCreated(Bundle savedInstanceState) {
             super.onActivityCreated(savedInstanceState);
 
             setHasOptionsMenu(true);
-            //this.getView().setLongClickable(true);
-            //this.getView().setClickable(true);
             registerForContextMenu(this.getListView());
             System.out.println("NetworkInfoListFragment.onActivityCreated");
 
@@ -330,12 +341,6 @@ public class MainActivity extends FragmentActivity
                 setListAdapter(mNetAdapter);
             }
 
-        }
-
-        @Override
-        public void onSaveInstanceState(Bundle savedInstanceState) {
-            // Always call the superclass so it can save the view hierarchy state
-            super.onSaveInstanceState(savedInstanceState);
         }
 
         private void StartPhoneStateListening() {
