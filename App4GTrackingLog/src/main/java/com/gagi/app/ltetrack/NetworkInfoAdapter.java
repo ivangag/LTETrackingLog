@@ -28,18 +28,23 @@ import java.util.List;
 public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
 
     private final Context mContext;
+    private final MainActivity.PlaceholderFragment mListViewerFragment = null;
 
     // List of NetworkInfoItems
     private List<NetworkInfoItem> mItems = new ArrayList<NetworkInfoItem>();
     private final List<NetworkInfoItem> mOriginalItems = new ArrayList<NetworkInfoItem>();
     private String mLastFilter;
-    OnDataItemChangedListener mNotifierDataChangement;
+    OnDataItemChangedListener mDataNotifierCallBack;
 
     public interface OnDataItemChangedListener
     {
         public void OnDataItemChanged();
     }
 
+    public void setOnDataItemChangedListener(MainActivity.PlaceholderFragment fragment)
+    {
+        mDataNotifierCallBack = fragment;
+    }
 
     public  NetworkInfoAdapter(Context context)
     {
@@ -47,18 +52,18 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         mLastFilter = context.getResources().getString(R.string.filterALL);
     }
 
-    public List<String> getRawItemsInfo()
+    public String getRawItemsInfo()
     {
-        List<String> items = new ArrayList<String>();
-        for(NetworkInfoItem item:mItems)
+        StringBuilder stringBuilder = new StringBuilder();
+        for(NetworkInfoItem item:mOriginalItems)
         {
-            items.add(item.getmTimeEventInfo() + ";" +
+            stringBuilder.append(item.getmTimeEventInfo() + ";" +
                     item.getNetworkTypeName() + ";" +
-                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLatitude())  : "" ) + ";" +
-                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLongitude()) : "" )
-            );
+                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLatitude()) : "") + ";" +
+                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLongitude()) : "")
+            ).append("\r\n");
         }
-        return  items;
+        return  stringBuilder.toString();
     }
 
 
@@ -181,7 +186,7 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         this.getFilter().filter(mLastFilter);
         //mItems.add(0,item);
         //notifyDataSetChanged();
-        mNotifierDataChangement.OnDataItemChanged();
+        mDataNotifierCallBack.OnDataItemChanged();
     }
 
     @Override

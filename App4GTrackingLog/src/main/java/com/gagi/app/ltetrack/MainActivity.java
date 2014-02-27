@@ -139,7 +139,6 @@ public class MainActivity extends FragmentActivity
         private static final int MENU_DELETE_SINGLE = Menu.FIRST + 3;
         final String LOC_UNAVAILABLE = "LOC:UNAVAILABLE";
         final  String APP_TAG = "com.gagi.app.ltetrack";
-        final String TXT_NET_STATUS = "TXT_NET_STATUS";
 
         NetworkInfoAdapter mNetAdapter;
         LocationClient mLocationClient;
@@ -149,6 +148,7 @@ public class MainActivity extends FragmentActivity
         ArrayAdapter mArrayAdapterNetworkInfo;
 
         private ShareActionProvider mShareActionProvider;
+        private boolean mIsShareIntentPendind = false;
 
         /** Defines a default (dummy) share intent to initialize the action provider.
          * However, as soon as the actual content to be used in the intent
@@ -169,8 +169,14 @@ public class MainActivity extends FragmentActivity
 
         private void updateShareIntentWithText() {
             Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.putExtra(Intent.EXTRA_TEXT,mNetAdapter.getRawItemsInfo().toArray());
-            mShareActionProvider.setShareIntent(intent);
+            intent.putExtra(Intent.EXTRA_TEXT,mNetAdapter.getRawItemsInfo()).setType("text/plain");
+            if(mShareActionProvider != null)
+            {
+                mShareActionProvider.setShareIntent(intent);
+                mIsShareIntentPendind = false;
+            }
+            else
+                mIsShareIntentPendind = true;
         }
 
 
@@ -235,8 +241,10 @@ public class MainActivity extends FragmentActivity
             mShareActionProvider = (ShareActionProvider)shareItem.getActionProvider();
 
             mShareActionProvider.setShareHistoryFileName(ShareActionProvider.DEFAULT_SHARE_HISTORY_FILE_NAME);
-            mShareActionProvider.setShareIntent(getDefaultIntent());
 
+            mShareActionProvider.setShareIntent(getDefaultIntent());
+            if(mIsShareIntentPendind)
+                updateShareIntentWithText();
             mShareActionProvider.setOnShareTargetSelectedListener(new ShareActionProvider.OnShareTargetSelectedListener() {
                 @Override
                 public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
@@ -404,6 +412,7 @@ public class MainActivity extends FragmentActivity
             if (mNetAdapter == null) {
                 // Create an empty adapter we will use to display the loaded data.
                 mNetAdapter = new NetworkInfoAdapter(getActivity().getApplicationContext());
+                mNetAdapter.setOnDataItemChangedListener(this);
                 setListAdapter(mNetAdapter);
             }
 
