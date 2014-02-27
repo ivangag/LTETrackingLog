@@ -130,11 +130,11 @@ public class MainActivity extends FragmentActivity
      */
     public static class PlaceholderFragment extends ListFragment implements AdapterView.OnItemSelectedListener,
             GooglePlayServicesClient.ConnectionCallbacks,
-            GooglePlayServicesClient.OnConnectionFailedListener {
+            GooglePlayServicesClient.OnConnectionFailedListener,
+            NetworkInfoAdapter.OnDataItemChangedListener
+    {
 
         // IDs for menu items
-        private static final int MENU_DELETE = Menu.FIRST;
-        private static final int MENU_DUMP = Menu.FIRST + 1;
         private static final int MENU_EDIT_SINGLE = Menu.FIRST + 2;
         private static final int MENU_DELETE_SINGLE = Menu.FIRST + 3;
         final String LOC_UNAVAILABLE = "LOC:UNAVAILABLE";
@@ -158,15 +158,24 @@ public class MainActivity extends FragmentActivity
         private Intent getDefaultIntent() {
             InputStream is = getResources().openRawResource(R.drawable.trash_48x48);
             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) +  "/imageLTETrack.pgn");
-            CreateFileFromInputStream(is,file);
+            WriteContentToFileFromInputStream(is, file);
             Uri uri = Uri.fromFile(file);
             Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setData(uri);
-            intent.setType("image/pgn");
+//            intent.putExtra(Intent.EXTRA_STREAM, uri)
+//                .setType("image/pgn");
+
             return intent;
         }
 
-        private void CreateFileFromInputStream(InputStream input, File file)
+        private void updateShareIntentWithText() {
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.putExtra(Intent.EXTRA_TEXT,mNetAdapter.getRawItemsInfo().toArray());
+            mShareActionProvider.setShareIntent(intent);
+        }
+
+
+
+        private void WriteContentToFileFromInputStream(InputStream input, File file)
         {
             try {
                 OutputStream output = null;
@@ -225,7 +234,16 @@ public class MainActivity extends FragmentActivity
             MenuItem shareItem = menu.findItem(R.id.action_share);
             mShareActionProvider = (ShareActionProvider)shareItem.getActionProvider();
 
+            mShareActionProvider.setShareHistoryFileName(ShareActionProvider.DEFAULT_SHARE_HISTORY_FILE_NAME);
             mShareActionProvider.setShareIntent(getDefaultIntent());
+
+            mShareActionProvider.setOnShareTargetSelectedListener(new ShareActionProvider.OnShareTargetSelectedListener() {
+                @Override
+                public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+
+                    return false;
+                }
+            });
 
            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                @Override
@@ -498,6 +516,10 @@ public class MainActivity extends FragmentActivity
             mNetAdapter.getFilter().filter(filter);
         }
 
+        @Override
+        public void OnDataItemChanged() {
+            updateShareIntentWithText();
+        }
     }
 
 }

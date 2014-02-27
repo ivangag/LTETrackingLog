@@ -33,12 +33,35 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
     private List<NetworkInfoItem> mItems = new ArrayList<NetworkInfoItem>();
     private final List<NetworkInfoItem> mOriginalItems = new ArrayList<NetworkInfoItem>();
     private String mLastFilter;
+    OnDataItemChangedListener mNotifierDataChangement;
+
+    public interface OnDataItemChangedListener
+    {
+        public void OnDataItemChanged();
+    }
+
 
     public  NetworkInfoAdapter(Context context)
     {
         mContext = context;
         mLastFilter = context.getResources().getString(R.string.filterALL);
     }
+
+    public List<String> getRawItemsInfo()
+    {
+        List<String> items = new ArrayList<String>();
+        for(NetworkInfoItem item:mItems)
+        {
+            items.add(item.getmTimeEventInfo() + ";" +
+                    item.getNetworkTypeName() + ";" +
+                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLatitude())  : "" ) + ";" +
+                    ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLongitude()) : "" )
+            );
+        }
+        return  items;
+    }
+
+
     @Override
     public int getCount() {
         return mItems.size();
@@ -158,6 +181,7 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         this.getFilter().filter(mLastFilter);
         //mItems.add(0,item);
         //notifyDataSetChanged();
+        mNotifierDataChangement.OnDataItemChanged();
     }
 
     @Override
