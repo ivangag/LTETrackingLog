@@ -41,9 +41,9 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         public void OnDataItemChanged();
     }
 
-    public void setOnDataItemChangedListener(MainActivity.PlaceholderFragment fragment)
+    public void addOnDataItemChangedListener(OnDataItemChangedListener listener)
     {
-        mDataNotifierCallBack = fragment;
+        mDataNotifierCallBack = listener;
     }
 
     public  NetworkInfoAdapter(Context context)
@@ -57,8 +57,10 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
         StringBuilder stringBuilder = new StringBuilder();
         for(NetworkInfoItem item:mOriginalItems)
         {
-            stringBuilder.append(item.getmTimeEventInfo() + ";" +
+            stringBuilder.append(
+                    item.getmTimeEventInfo() + ";" +
                     item.getNetworkTypeName() + ";" +
+                    String.valueOf(item.getAntennaBars()) + "/5" + ";" +
                     ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLatitude()) : "") + ";" +
                     ((item.getLocation() != null) ? String.valueOf(item.getLocation().getLongitude()) : "")
             ).append("\r\n");
@@ -156,6 +158,7 @@ public class NetworkInfoAdapter extends BaseAdapter implements Filterable{
 
         String itemText = "[" + networkInfoItem.getmTimeEventInfo() + "] " +
                 "[" + networkInfoItem.getOperatorName() + "] " +
+                "[Ant:" + String.valueOf(networkInfoItem.getAntennaBars()) + "/5] " +
                 "[" + networkInfoItem.getNetworkTypeName() + "] ";
         networkInfoItem.setRawText(itemText);
         txtSumInfo.setText(/*networkInfoItem.getSummaryInfo() + */

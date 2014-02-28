@@ -20,6 +20,7 @@ public class NetworkInfoItem {
             //"yyyy-MM-dd HH:mm:ss", Locale.ITALY);
             "dd-MM-yyyy HH:mm:ss", Locale.ITALY);
     private String mrawText;
+    private byte mAntennaBars;
 
     public  NetworkInfoItem(String summaryInfo)
     {
@@ -114,6 +115,29 @@ public class NetworkInfoItem {
         return txtNetworkType;
     }
 
+    public void setAntennaBars(int dBm)
+    {
+        if ((dBm == 0) || (dBm == 99))
+        {
+            mAntennaBars           = 1;
+        }
+        else
+        {
+            if ((dBm >= 1) && (dBm <= 5))
+                mAntennaBars = 2;
+            else if ((dBm >= 6) && (dBm <= 9))
+                mAntennaBars = 3;
+            else if ((dBm >= 10) && (dBm <= 14))
+                mAntennaBars = 4;
+            else if ((dBm >= 15) && (dBm <= 31))
+                mAntennaBars = 5;
+        }
+    }
+
+    public byte getAntennaBars()
+    {
+        return mAntennaBars;
+    }
     public void setTimeEventInfo(String timeEventInfo) {
         this.mTimeEventInfo = timeEventInfo;
     }

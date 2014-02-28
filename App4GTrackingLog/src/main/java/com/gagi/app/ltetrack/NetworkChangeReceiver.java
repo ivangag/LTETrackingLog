@@ -34,8 +34,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
                         .getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
             }
-            String msgNetwinfo = networkInfo.toString();
-
             sendMessage(context,networkInfo);
         }
     }

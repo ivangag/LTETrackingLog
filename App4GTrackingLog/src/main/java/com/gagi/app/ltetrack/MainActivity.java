@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.location.Location;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
@@ -139,6 +140,7 @@ public class MainActivity extends FragmentActivity
         private static final int MENU_DELETE_SINGLE = Menu.FIRST + 3;
         final String LOC_UNAVAILABLE = "LOC:UNAVAILABLE";
         final  String APP_TAG = "com.gagi.app.ltetrack";
+        private final int mCcurrentApiVersion;
 
         NetworkInfoAdapter mNetAdapter;
         LocationClient mLocationClient;
@@ -149,6 +151,11 @@ public class MainActivity extends FragmentActivity
 
         private ShareActionProvider mShareActionProvider;
         private boolean mIsShareIntentPendind = false;
+
+        public PlaceholderFragment()
+        {
+            mCcurrentApiVersion = android.os.Build.VERSION.SDK_INT;
+        }
 
         /** Defines a default (dummy) share intent to initialize the action provider.
          * However, as soon as the actual content to be used in the intent
@@ -333,6 +340,7 @@ public class MainActivity extends FragmentActivity
         }
         @Override
         public void onConnected(Bundle dataBundle) {
+            this.StartPhoneStateListening();
             // Display the connection status
             Toast.makeText(this.getActivity().getApplicationContext(), "Google Play Services Connected", Toast.LENGTH_SHORT).show();
             LogManager.GetInstance().WriteToFile("Google Play Services Connected");
@@ -388,7 +396,7 @@ public class MainActivity extends FragmentActivity
 
             mLocationClient = new LocationClient(getActivity().getApplicationContext(),this,this);
             mLocationClient.connect();
-            this.StartPhoneStateListening();
+            //this.StartPhoneStateListening();
             // Register mMessageReceiver to receive messages.
             LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(mMessageReceiver,
                     new IntentFilter(CUSTOM_INTENT_CONNECTIVITY_CHANGED));
@@ -412,7 +420,7 @@ public class MainActivity extends FragmentActivity
             if (mNetAdapter == null) {
                 // Create an empty adapter we will use to display the loaded data.
                 mNetAdapter = new NetworkInfoAdapter(getActivity().getApplicationContext());
-                mNetAdapter.setOnDataItemChangedListener(this);
+                mNetAdapter.addOnDataItemChangedListener(this);
                 setListAdapter(mNetAdapter);
             }
 
@@ -422,6 +430,8 @@ public class MainActivity extends FragmentActivity
             final TelephonyManager telephonyManager = (TelephonyManager) getActivity().getSystemService(TELEPHONY_SERVICE);
             PhoneStateListener phoneStateListener = new PhoneStateListener()
             {
+                public int mSignalGsmLevel;
+
                 @Override
                 public void onCellInfoChanged (List<CellInfo> cellInfo)
                 {
@@ -449,9 +459,22 @@ public class MainActivity extends FragmentActivity
                     msg = LogManager.GetInstance().GetCurrentDateTimeFormatted() + " - " + msg + loc;
                     NetworkInfoItem networkInfoItem = new NetworkInfoItem(msg);
                     networkInfoItem.setLocation(myLoc);
+
+                    if (mCcurrentApiVersion >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+                    {
+                        // Do something for Api level 17 and above versions
+                        //List<CellInfo> cells =  telephonyManager.getAllCellInfo();
+                        //                       mSignalGsmLevel = cellInfo.getCellSignalStrength().getAsuLevel();
+                    }
+                    else
+                    {
+                        // do something for phones running an SDK before Api level 17
+                    }
                     networkInfoItem.setOperatorName(serviceState.getOperatorAlphaShort());
                     networkInfoItem.setNetworkType(telephonyManager.getNetworkType());
                     networkInfoItem.setTimeEventInfo(LogManager.GetInstance().GetCurrentDateTimeFormatted());
+                    networkInfoItem.setAntennaBars(mSignalGsmLevel);
+
                     mNetAdapter.add(networkInfoItem);
                     msg = "onServiceStateChanged: " + serviceState.toString();
                     LogManager.GetInstance().WriteToFile(msg);
@@ -460,6 +483,8 @@ public class MainActivity extends FragmentActivity
                 @Override
                 public void onSignalStrengthsChanged(SignalStrength signalStrength)
                 {
+                    if(signalStrength.isGsm())
+                        mSignalGsmLevel = signalStrength.getGsmSignalStrength();
                     Log.i(APP_TAG,"onSignalStrengthsChanged=" + signalStrength.toString());
                 }
                 @Override
@@ -480,7 +505,8 @@ public class MainActivity extends FragmentActivity
             };
             //telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_SERVICE_STATE
             //       |PhoneStateListener.LISTEN_SIGNAL_STRENGTHS  | PhoneStateListener.LISTEN_CALL_STATE);
-            telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_SERVICE_STATE);
+            telephonyManager.listen(phoneStateListener,PhoneStateListener.LISTEN_SERVICE_STATE
+                    |PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         }
 
         // Our handler for received Intents. This will be called whenever an Intent
