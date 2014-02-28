@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
+import android.location.LocationManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -55,6 +56,8 @@ public class MainActivity extends FragmentActivity
 
     public static Application application = null;
 
+    GPSLocationListener mGpsLocationListener;
+    LocationManager mLocationManager;
 
 
     final  String APP_TAG = "com.gagi.app.ltetrack";
@@ -78,9 +81,17 @@ public class MainActivity extends FragmentActivity
         {
             //mTxtNetStatus = new StringBuilder(savedInstanceState.getString(TXT_NET_STATUS));
         }
-
-
+        mLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
+        mGpsLocationListener = new GPSLocationListener();
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, mGpsLocationListener);
         //StartPhoneStateListening();
+    }
+
+    @Override
+    protected void onDestroy() {
+        mLocationManager.removeUpdates(mGpsLocationListener);
+        super.onDestroy();
+        // The activity is about to be destroyed.
     }
 
     public void workwithListActionBar()
