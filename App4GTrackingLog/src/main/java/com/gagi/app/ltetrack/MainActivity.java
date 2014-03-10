@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -47,7 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity
-        implements FilterFragment.OnHeadlineSelectedListener{
+        implements FilterFragment.OnHeadlineSelectedListener,LocationListener{
     final static String  CUSTOM_INTENT_CONNECTIVITY_CHANGED = "CUSTOM_INTENT_CONNECTIVITY_CHANGED";
     final static String  CUSTOM_EXTRA_NETWORK_INFO = "CUSTOM_EXTRA_NETWORK_INFO";
     final static String  FRAGMENT_NETWORK_LIST_TAG = "FRAGMENT_NETWORK_LIST_TAG";
@@ -56,7 +57,6 @@ public class MainActivity extends FragmentActivity
 
     public static Application application = null;
 
-    GPSLocationListener mGpsLocationListener;
     LocationManager mLocationManager;
 
 
@@ -82,14 +82,14 @@ public class MainActivity extends FragmentActivity
             //mTxtNetStatus = new StringBuilder(savedInstanceState.getString(TXT_NET_STATUS));
         }
         mLocationManager = (LocationManager)getSystemService(LOCATION_SERVICE);
-        mGpsLocationListener = new GPSLocationListener();
-        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, mGpsLocationListener);
+        //mGpsLocationListener = new GPSLocationListener();
+        mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 0, this);
         //StartPhoneStateListening();
     }
 
     @Override
     protected void onDestroy() {
-        mLocationManager.removeUpdates(mGpsLocationListener);
+        mLocationManager.removeUpdates(this);
         super.onDestroy();
         // The activity is about to be destroyed.
     }
@@ -135,6 +135,26 @@ public class MainActivity extends FragmentActivity
             // Call a method in the fragment to update its content
             networkFrag.UpdateFilterNetworkMessages(filterType);
         }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 
     /**
@@ -237,12 +257,6 @@ public class MainActivity extends FragmentActivity
         @Override
         public void onCreateOptionsMenu (Menu menu, MenuInflater inflater)
         {
-            /*
-            menu.add(Menu.NONE, MENU_DELETE,Menu.NONE,"Delete All")
-                    .setIcon(R.drawable.trash_48x48)
-                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-            menu.add(Menu.NONE, MENU_DUMP, Menu.NONE, "Dump to log").setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
-            */
             inflater.inflate(R.menu.fragment_main,menu);
 
             MenuItem searchItem = menu.findItem(R.id.action_search);
